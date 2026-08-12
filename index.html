@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f97316">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Kleenu Futter-Rechner</title>
+<style>
+  :root{
+    --bg:#fff7ed;
+    --card:#ffffff;
+    --text:#3f3f46;
+    --muted:#71717a;
+    --line:#fde68a;
+    --accent:#f97316;
+    --accent2:#14b8a6;
+    --accent3:#8b5cf6;
+    --good:#15803d;
+    --warn:#c2410c;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.35;
+  }
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:14px 14px 40px;
+  }
+  h1{font-size:1.45rem;margin:6px 0 4px}
+  .subtitle{color:var(--muted);font-size:.92rem;margin-bottom:14px}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+    margin:12px 0;
+    box-shadow:0 6px 18px rgba(249,115,22,.08);
+  }
+  h2{font-size:1.05rem;margin:0 0 12px}
+  label{display:block;font-size:.87rem;font-weight:650;margin-bottom:6px}
+  input,select{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:11px;
+    padding:12px;
+    font-size:1rem;
+    background:white;
+    color:var(--text);
+  }
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:560px){
+    .grid,.grid3{grid-template-columns:1fr}
+  }
+  .result{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .result:last-child{border-bottom:none}
+  .result strong{font-variant-numeric:tabular-nums}
+  .big{
+    font-size:1.35rem;
+    font-weight:800;
+    color:var(--accent);
+  }
+  .card:nth-of-type(2){border-top:5px solid var(--accent)}
+  .card:nth-of-type(3){border-top:5px solid var(--accent2)}
+  .card:nth-of-type(4){border-top:5px solid var(--accent3)}
+  .quick{padding:9px 11px; min-width:58px}
+  .pill{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#eef2f7;
+    font-size:.82rem;
+    margin-top:6px;
+  }
+  .note{
+    font-size:.82rem;
+    color:var(--muted);
+    margin-top:10px;
+  }
+  .ok{color:var(--good)}
+  .warn{color:var(--warn)}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  button{
+    border:0;
+    border-radius:11px;
+    padding:11px 14px;
+    font-weight:700;
+    font-size:.95rem;
+    cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),#fb923c);
+    color:#fff;
+  }
+  button.secondary{
+    background:#ecfeff;
+    color:#0f766e;
+    border:1px solid #99f6e4;
+  }
+  .small{font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🐱 Kleenu Futter-Rechner 🍽️</h1>
+  <div class="subtitle">🥩 Rezept • 🎃 Calabaza • 🥚 Ei • 🦴 Calcium • 🌾 Trockenfutter • 🔥 Kalorien</div>
+
+  <div class="card">
+    <h2>🥩 1. Rezept aus Fleischmenge berechnen</h2>
+    <div class="grid">
+      <div>
+        <label for="meat">Fleischart</label>
+        <select id="meat">
+          <option value="chicken">Huhn</option>
+          <option value="beef">Rind</option>
+          <option value="pork">Schwein</option>
+          <option value="hake">Merluza / Seehecht</option>
+          <option value="lamb">Lamm</option>
+          <option value="cod">Bacalao / Kabeljau</option>
+        </select>
+      </div>
+      <div>
+        <label for="meatGrams">Fleischmenge in g</label>
+        <input id="meatGrams" type="number" min="0" step="1" value="1200">
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <div>
+        <label>Fleisch kcal / 100 g</label>
+        <div id="meatKcalDisplay" style="padding:12px;border:1px solid #d1d5db;border-radius:11px;background:#f9fafb;font-weight:700">–</div>
+      </div>
+      <div>
+        <label for="pumpkinKcal">Calabaza kcal / 100 g</label>
+        <input id="pumpkinKcal" type="number" min="0" step="1" value="26">
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:12px">
+      <button type="button" id="eggYesBtn" onclick="setEggMode(true)">🥚 Mit Ei</button>
+      <button type="button" id="eggNoBtn" class="secondary" onclick="setEggMode(false)">🚫🥚 Ohne Ei</button>
+    </div>
+    <div class="note" id="eggNote">
+      Im Ernährungsbericht ist 1/8 Ei pro Tagesration vorgesehen. „Ohne Ei“ ist daher eine abweichende Rezeptvariante.
+    </div>
+
+    <div style="margin-top:14px">
+      <div class="result"><span>🎃 Calabaza</span><strong id="pumpkinOut">–</strong></div>
+      <div class="result"><span>🥚 Ei, hartgekocht</span><strong id="eggOut">–</strong></div>
+      <div class="result"><span>🦴 Calciumcarbonat</span><strong id="calciumOut">–</strong></div>
+      <div class="result"><span>⚖️ Gesamtgewicht Mischung</span><strong id="batchWeightOut">–</strong></div>
+      <div class="result"><span>🔥 Geschätzte Kalorien Charge</span><strong id="batchKcalOut">–</strong></div>
+      <div class="result"><span>🧮 Geschätzte Rohwaren-Energiedichte</span><strong id="kcalDensityOut">–</strong></div>
+      <div class="result"><span>📘 Tierarzt-Energiedichte für Tagesration</span><strong>88,6 kcal / 100 g</strong></div>
+    </div>
+    <div class="note">
+      Rezeptverhältnis aus dem Ernährungsbericht: 135 g Fleisch + 35 g Gemüse/Calabaza + 1/8 Ei + 1,1 g Calciumcarbonat.
+      Die kcal-Werte sind Schätzwerte und können je nach Fleischstück/Fettgehalt stark schwanken.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🍽️ 2. Tagesration nach Tierarzt-Plan</h2>
+    <div class="btnrow" style="margin-top:0;margin-bottom:12px">
+      <button type="button" id="modeHomeBtn" onclick="setMode('home')">🥣 Nur Hauskost</button>
+      <button type="button" id="modeMixedBtn" class="secondary" onclick="setMode('mixed')">🥣 + 🌾 Mit Trockenfutter</button>
+    </div>
+    <div class="grid">
+      <div id="dryControls">
+        <label for="dryDaily">Trockenfutter pro Tag (g)</label>
+        <input id="dryDaily" type="number" min="0" max="40" step="1" value="0">
+        <div class="btnrow" style="margin-top:8px">
+          <button type="button" class="secondary quick" onclick="setDry(0)">0 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(5)">5 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(10)">10 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(15)">15 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(20)">20 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(25)">25 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(30)">30 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(35)">35 g</button>
+          <button type="button" class="secondary quick" onclick="setDry(40)">40 g</button>
+        </div>
+      </div>
+      <div>
+        <label for="dryKcal">Trockenfutter kcal / 100 g</label>
+        <input id="dryKcal" type="number" min="0" step="1" value="380">
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <div>
+        <label>📘 Referenz aus Ernährungsbericht</label>
+        <div style="padding:12px;border:1px solid #d1d5db;border-radius:11px;background:#fff7ed;font-weight:800">
+          📘 Tierarzt-Anker: 176,1 g Hauskost = 156 kcal/Tag
+        </div>
+      </div>
+      <div>
+        <label for="fullDry">100 % Trockenfutter pro Tag (g)</label>
+        <input id="fullDry" type="number" min="1" step="1" value="40">
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div class="result"><span>🥣 Hauskost pro Tag</span><strong class="big" id="homeDailyOut">–</strong></div>
+      <div class="result"><span>🌾 Trockenfutter pro Tag</span><strong id="dryDailyOut">–</strong></div>
+      <div class="result"><span>🔥 kcal Hauskost/Tag</span><strong id="homeKcalDayOut">–</strong></div>
+      <div class="result"><span>🔥 kcal Trockenfutter/Tag</span><strong id="dryKcalDayOut">–</strong></div>
+      <div class="result"><span>🎯 kcal gesamt/Tag</span><strong class="big" id="totalKcalDayOut">–</strong></div>
+      <div class="result"><span>📅 Charge reicht ungefähr</span><strong id="daysOut">–</strong></div>
+    </div>
+    <div class="result" style="margin-top:8px"><span>👩‍⚕️ Exakte 50/50-Mischung laut Bericht</span><strong>88,1 g Hauskost + 20 g Trockenfutter</strong></div>
+    <div id="ratioNote" class="pill"></div>
+    <div class="note">
+      Du kannst zwischen <strong>100 % Hauskost</strong> und <strong>Hauskost + Trockenfutter</strong> umschalten.
+      <br><br><strong>Wichtig:</strong> Für die Tagesration verwendet der Rechner jetzt den Wert aus dem Ernährungsbericht:
+      <strong>176,1 g Hauskost = 156 kcal</strong>. Die ausgewählte Fleischart verändert weiterhin die
+      <em>geschätzten Rohwaren-Kalorien der Charge</em>, aber nicht die tierärztlich vorgegebene Tages-Energiedichte.
+      Bei Trockenfutter werden dessen kcal vom Tagesziel abgezogen und der Rest mit Hauskost nach diesem Tierarzt-Anker berechnet.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔥 3. Kalorien-Ziel</h2>
+    <div class="grid">
+      <div>
+        <label for="targetKcal">Ziel kcal / Tag</label>
+        <input id="targetKcal" type="number" min="0" step="1" value="156">
+      </div>
+      <div>
+        <label for="eggKcal">Ei kcal / 100 g</label>
+        <input id="eggKcal" type="number" min="0" step="1" value="155">
+      </div>
+    </div>
+    <div class="result" style="margin-top:10px"><span>📊 Abweichung vom Ziel</span><strong id="deltaOut">–</strong></div>
+    <div class="note">
+      Das Ziel von 156 kcal/Tag stammt aus dem Ernährungsbericht. Der Rechner ersetzt keine tierärztliche Anpassung.
+    </div>
+  </div>
+
+  
+  <div class="card">
+    <h2>📲 App installieren</h2>
+    <div class="note" style="font-size:.9rem;margin-top:0">
+      Wenn diese Seite über HTTPS geöffnet wird, kannst du sie wie eine App auf dem Startbildschirm installieren.
+    </div>
+    <div class="btnrow">
+      <button id="installBtn" type="button" style="display:none">📱 App installieren</button>
+    </div>
+  </div>
+
+  <div class="btnrow">
+    <button onclick="saveSettings()">Werte speichern</button>
+    <button class="secondary" onclick="resetDefaults()">Zurücksetzen</button>
+  </div>
+  <div class="small" style="margin-top:10px">Alle Berechnungen laufen nur auf diesem Gerät. Keine Daten werden übertragen.</div>
+</div>
+
+<script>
+const kcalDefaults = {
+  chicken: 120,
+  beef: 150,
+  pork: 145,
+  hake: 90,
+  lamb: 180,
+  cod: 82
+};
+
+const ids = [
+  "meat","meatGrams","pumpkinKcal","dryDaily","dryKcal",
+  "fullDry","targetKcal","eggKcal"
+];
+
+function n(id){ return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(x, d=1){ return Number.isFinite(x) ? x.toLocaleString("de-DE",{maximumFractionDigits:d, minimumFractionDigits:d}) : "–"; }
+
+function updateMeatKcal(){
+  calc();
+}
+
+let eggEnabled = true;
+
+function setEggMode(enabled){
+  eggEnabled = enabled;
+  const yesBtn = document.getElementById("eggYesBtn");
+  const noBtn = document.getElementById("eggNoBtn");
+  const eggNote = document.getElementById("eggNote");
+
+  if(enabled){
+    yesBtn.className = "";
+    noBtn.className = "secondary";
+    eggNote.textContent = "Im Ernährungsbericht ist 1/8 Ei pro Tagesration vorgesehen.";
+  } else {
+    yesBtn.className = "secondary";
+    noBtn.className = "";
+    eggNote.textContent = "⚠️ Ohne Ei weicht das Rezept vom Ernährungsbericht ab. Der Rechner setzt Ei und Ei-Kalorien dann auf 0.";
+  }
+  localStorage.setItem("kleenuEggEnabled", enabled ? "1" : "0");
+  calc();
+}
+
+let feedingMode = "home";
+
+function setMode(mode){
+  feedingMode = mode;
+  const dryControls = document.getElementById("dryControls");
+  const homeBtn = document.getElementById("modeHomeBtn");
+  const mixedBtn = document.getElementById("modeMixedBtn");
+
+  if(mode === "home"){
+    document.getElementById("dryDaily").value = 0;
+    dryControls.style.opacity = "0.45";
+    dryControls.style.pointerEvents = "none";
+    homeBtn.className = "";
+    mixedBtn.className = "secondary";
+  } else {
+    dryControls.style.opacity = "1";
+    dryControls.style.pointerEvents = "auto";
+    homeBtn.className = "secondary";
+    mixedBtn.className = "";
+  }
+  localStorage.setItem("kleenuFeedingMode", feedingMode);
+  calc();
+}
+
+function setDry(g){
+  feedingMode = "mixed";
+  document.getElementById("dryDaily").value = g;
+  setMode("mixed");
+  calc();
+}
+
+function calc(){
+  const meatG = n("meatGrams");
+  const meatType = document.getElementById("meat").value;
+  const meatKcal = kcalDefaults[meatType];
+  document.getElementById("meatKcalDisplay").textContent = meatKcal + " kcal";
+  const pumpkinKcal = n("pumpkinKcal");
+  const eggKcal = n("eggKcal");
+
+  // Veterinarian recipe ratios
+  const pumpkinG = meatG * (35/135);
+  const eggUnitsBase = meatG * ((1/8)/135);
+  const eggUnits = eggEnabled ? eggUnitsBase : 0;
+  const eggG = eggUnits * 50; // ~50 g edible egg/unit
+  const calciumG = meatG * (1.1/135);
+  const batchWeight = meatG + pumpkinG + eggG + calciumG;
+
+  const meatCalories = meatG * meatKcal / 100;
+  const pumpkinCalories = pumpkinG * pumpkinKcal / 100;
+  const eggCalories = eggG * eggKcal / 100;
+  const batchKcal = meatCalories + pumpkinCalories + eggCalories;
+
+  document.getElementById("pumpkinOut").textContent = fmt(pumpkinG,0) + " g";
+  document.getElementById("eggOut").textContent = eggEnabled
+    ? fmt(eggG,1) + " g  (" + fmt(eggUnits,2) + " Ei)"
+    : "0 g";
+  document.getElementById("calciumOut").textContent = fmt(calciumG,1) + " g";
+  document.getElementById("batchWeightOut").textContent = fmt(batchWeight,0) + " g";
+  document.getElementById("batchKcalOut").textContent = fmt(batchKcal,0) + " kcal";
+  document.getElementById("kcalDensityOut").textContent = batchWeight > 0 ? fmt((batchKcal/batchWeight)*100,0) + " kcal / 100 g" : "–";
+
+  const fullDry = n("fullDry");
+  let dryG = feedingMode === "home" ? 0 : Math.min(n("dryDaily"), fullDry);
+
+  // Veterinarian anchor from the report:
+  // 176.1 g fresh homemade ration = 156 kcal/day.
+  // This is the energy density used to calculate DAILY GRAMS.
+  // Meat-specific kcal remain an informational estimate for the batch only.
+  const vetHomeKcalPerG = 156 / 176.1;
+
+  const dryKcalDay = dryG * n("dryKcal") / 100;
+  const target = n("targetKcal");
+  const remainingKcalForHome = Math.max(0, target - dryKcalDay);
+  const homeDaily = vetHomeKcalPerG > 0 ? remainingKcalForHome / vetHomeKcalPerG : 0;
+  const homeKcalDay = homeDaily * vetHomeKcalPerG;
+  const totalKcalDay = homeKcalDay + dryKcalDay;
+  const delta = totalKcalDay - target;
+  const days = homeDaily > 0 ? batchWeight / homeDaily : Infinity;
+
+  const dryFractionByCalories = target > 0 ? Math.min(1, dryKcalDay / target) : 0;
+  const homeFractionByCalories = Math.max(0, 1 - dryFractionByCalories);
+
+  document.getElementById("homeDailyOut").textContent = fmt(homeDaily,0) + " g";
+  document.getElementById("dryDailyOut").textContent = fmt(dryG,0) + " g";
+  document.getElementById("homeKcalDayOut").textContent = fmt(homeKcalDay,0) + " kcal";
+  document.getElementById("dryKcalDayOut").textContent = fmt(dryKcalDay,0) + " kcal";
+  document.getElementById("totalKcalDayOut").textContent = fmt(totalKcalDay,0) + " kcal";
+  document.getElementById("daysOut").textContent = Number.isFinite(days) ? fmt(days,1) + " Tage" : "nur Trockenfutter";
+
+  const ratio = Math.round(homeFractionByCalories*100);
+  const dryPct = Math.round(dryFractionByCalories*100);
+  document.getElementById("ratioNote").textContent = `🔥 nach Tages-kcal: ${ratio} % Hauskost + ${dryPct} % Trockenfutter`;
+
+  const deltaEl = document.getElementById("deltaOut");
+  if (target > 0){
+    const sign = delta > 0 ? "+" : "";
+    deltaEl.textContent = sign + fmt(delta,0) + " kcal";
+    deltaEl.className = Math.abs(delta) <= 8 ? "ok" : "warn";
+  } else {
+    deltaEl.textContent = "–";
+    deltaEl.className = "";
+  }
+}
+
+function saveSettings(){
+  const data = {};
+  ids.forEach(id => data[id] = document.getElementById(id).value);
+  localStorage.setItem("kleenuCalc", JSON.stringify(data));
+  alert("Gespeichert.");
+}
+
+function loadSettings(){
+  const raw = localStorage.getItem("kleenuCalc");
+  if(!raw){
+    calc();
+    return;
+  }
+  try{
+    const data = JSON.parse(raw);
+    ids.forEach(id => {
+      if(data[id] !== undefined) document.getElementById(id).value = data[id];
+    });
+  }catch(e){}
+  feedingMode = localStorage.getItem("kleenuFeedingMode") || "home";
+  const savedEgg = localStorage.getItem("kleenuEggEnabled");
+  eggEnabled = savedEgg === null ? true : savedEgg === "1";
+  setEggMode(eggEnabled);
+  setMode(feedingMode);
+  calc();
+}
+
+function resetDefaults(){
+  localStorage.removeItem("kleenuCalc");
+  document.getElementById("meat").value="chicken";
+  document.getElementById("meatGrams").value="1200";
+  document.getElementById("pumpkinKcal").value="26";
+  document.getElementById("dryDaily").value="0";
+  document.getElementById("dryKcal").value="380";
+  document.getElementById("fullDry").value="40";
+  document.getElementById("targetKcal").value="156";
+  document.getElementById("eggKcal").value="155";
+  localStorage.removeItem("kleenuFeedingMode");
+  localStorage.removeItem("kleenuEggEnabled");
+  eggEnabled = true;
+  feedingMode = "home";
+  setEggMode(true);
+  setMode("home");
+  calc();
+}
+
+document.getElementById("meat").addEventListener("change", updateMeatKcal);
+ids.filter(id=>id!=="meat").forEach(id => document.getElementById(id).addEventListener("input", calc));
+loadSettings();
+</script>
+
+<script>
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("installBtn");
+  if (btn) btn.style.display = "inline-block";
+});
+
+document.addEventListener("click", async (e) => {
+  if (e.target && e.target.id === "installBtn" && deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    e.target.style.display = "none";
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  const btn = document.getElementById("installBtn");
+  if (btn) btn.style.display = "none";
+});
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
